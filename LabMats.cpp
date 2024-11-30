@@ -6,9 +6,6 @@
 #include <string>
 #include <queue>
 
-// TODO: Fix the database part so that it will not modify the txt when the process request is not yet approved or denied
-// TODO: Add a feature that all pending requests will be saved in a txt file and will be loaded for the next session
-
 using namespace std;
 
 /* Class for the Materials in the Laboratory */
@@ -68,13 +65,12 @@ public:
 class DatabaseManager {
 private:
     string filename;
-    string onHold;
     map<string, int> materials;
     map<string, int> holdMats;
 
 public:
-    DatabaseManager(const string& filename = "database.txt", const string& onHold = "OnHold.txt")
-                    : filename(filename), onHold(onHold) {
+    DatabaseManager(const string& filename = "database.txt")
+                    : filename(filename) {
                     loadMaterials();
     }
 
@@ -180,7 +176,7 @@ public:
 
     void start() {
         while (true) {
-            cout << "-------------------------------------------------\n";
+            cout << "\n-------------------------------------------------\n";
             cout << "Welcome to the Lab Materials Borrowing Interface!\n";
             cout << "-------------------------------------------------\n";
             cout << "Main Menu:\n";
@@ -188,12 +184,17 @@ public:
             cout << "2. Borrower's Registration\n";
             cout << "3. Admin Access\n";
             cout << "4. Exit\n\n";
-            cout << "Enter choice: ";
+            cout << "Enter choice (number only): ";
 
             int choice;
-            cin >> choice;
+            if (!(cin >> choice)) {
+                cin.clear();  // Clear the error flag
+                cin.ignore(10000, '\n');  // Discard invalid input
+                cout << "Invalid input. Please enter a number.\n";
+                continue;
+            }
             cout << "\n";
-            cin.ignore();  // Clear the newline character from the input buffer
+            cin.ignore(10000, '\n');  // Clear the newline character from the input buffer
 
             if (choice == 1) {
                 studentLogin();
@@ -266,9 +267,15 @@ public:
                 cout << "5. Exit Admin Acess\n\n";
                 cout << "Enter choice: ";
 
-                int choice;
-                cin >> choice;
-                cin.ignore();  // Clear the newline character from the input buffer
+            int choice;
+            if (!(cin >> choice)) {
+                cin.clear();  // Clear the error flag
+                cin.ignore(10000, '\n');  // Discard invalid input
+                cout << "Invalid input. Please enter a number.\n\n";
+                continue;
+            }
+            cout << "\n";
+            cin.ignore(10000, '\n');  // Clear the newline character from the input buffer
 
                 if (choice == 1) {
                     viewMaterials();
@@ -299,22 +306,37 @@ public:
     }
 
     void addMaterialAdmin() {
+        viewMaterials();
+
         string materialName;
         int quantity;
-        cout << "Enter material name: ";
+        cout << "Enter material name to add: ";
         getline(cin, materialName);
         cout << "Enter quantity: ";
-        cin >> quantity;
-        cin.ignore();  // Clear the newline character from the input buffer
+
+        while (!(cin >> quantity)) {
+            cin.clear();  // Clear the error flag
+            cin.ignore(10000, '\n');  // Discard invalid input
+            cout << "Invalid input. Please enter a number: ";
+        }
+        cin.ignore(10000, '\n');  // Clear the newline character from the input buffer
 
         dbManager.addMaterial(materialName, quantity);
         cout << "Material added successfully.\n";
     }
 
     void removeMaterialAdmin() {
+
+        viewMaterials();
+
         string materialName;
-        cout << "Enter material name to remove: ";
+        cout << "\nEnter material name to remove: ";
         getline(cin, materialName);
+
+        if (dbManager.getMaterials().count(materialName) == 0) {
+            cout << "Material not found.\n";
+            return;
+        }
 
         dbManager.removeMaterial(materialName);
         cout << "Material removed successfully.\n";
@@ -322,10 +344,8 @@ public:
 
     void handleBorrowingRequest(BorrowingRequest& request) {
         while (true) {
-            cout << "\nAvailable Materials:\n";
-            for (const auto& material : dbManager.getMaterials()) {
-                cout << material.first << ": " << material.second << "\n";
-            }
+            
+            viewMaterials();
 
             string materialName;
             int quantity;
@@ -338,8 +358,13 @@ public:
             }
 
             cout << "Enter quantity: ";
-            cin >> quantity;
-            cin.ignore();  // Clear the newline character from the input buffer
+            if (!(cin >> quantity)) {
+                cin.clear();  // Clear the error flag
+                cin.ignore(10000, '\n');  // Discard invalid input
+                cout << "Invalid input. Please input requested item's information properly.\n\n";
+                continue;
+            }
+            cin.ignore(10000, '\n');  // Clear the newline character from the input buffer
 
             addMaterial(request, materialName, quantity);
         }
@@ -376,10 +401,16 @@ public:
                 cout << "- " << material.name << ": " << material.quantity << "\n";
             }
 
-            char decision;
-            cout << "Approve this request? (y/n): ";
-            cin >> decision;
-            cin.ignore();  // Clear the newline character from the input buffer
+            string decision;
+            while (true) {
+                cout << "Approve this request? (y/n): ";
+                cin >> decision;
+                cin.ignore(10000, '\n');  // Clear the newline character from the input buffer
+                if (decision == "y" || decision == "n") {
+                    break;
+                }
+                cout << "Invalid input. Please enter 'y' or 'n'.\n";
+            }
 
             logFile << "Processing request for: " << request.studentName << " (" << request.studentNumber << ")\n";
             logFile << "Materials Requested:\n";
@@ -387,7 +418,7 @@ public:
                 logFile << "- " << material.name << ": " << material.quantity << "\n";
             }
 
-            if (decision == 'y') {
+            if (decision == "y") {
                 cout << "Request approved.\n";
                 logFile << "Decision: Approved\n";
             } else {
