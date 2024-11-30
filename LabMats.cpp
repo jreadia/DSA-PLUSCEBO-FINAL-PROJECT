@@ -66,7 +66,6 @@ class DatabaseManager {
 private:
     string filename;
     map<string, int> materials;
-    map<string, int> holdMats;
 
 public:
     DatabaseManager(const string& filename = "database.txt")
