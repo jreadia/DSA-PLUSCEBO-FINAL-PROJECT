@@ -215,8 +215,13 @@ public:
         cout << "   Borrower's Login    \n";
         cout << "----------------------\n";
         string studentName, studentNumber;
-        cout << "Enter your name: ";
+        cout << "Enter your name (or 'return' to go back): ";
         getline(cin, studentName);
+
+        if (studentName == "return") {
+            return;  // Return to the main menu
+        }
+
         cout << "Enter your student number: ";
         getline(cin, studentNumber);
 
@@ -234,10 +239,23 @@ public:
         cout << "   Borrower's Registration    \n";
         cout << "-----------------------------\n";
         string studentName, studentNumber;
-        cout << "Enter your name: ";
+        cout << "Enter your name (or 'return' to go back): ";
         getline(cin, studentName);
+
+        if (studentName == "return") {
+            return;  // Return to the main menu
+        }
+
         cout << "Enter your student number: ";
         getline(cin, studentNumber);
+
+        // Check if student number is purely integers
+        for (char c : studentNumber) {
+            if (!isdigit(c)) {
+                cout << "Invalid student number. Please enter numbers only.\n\n";
+                return;
+            }
+        }
 
         AccountManager accountManager;
         if (accountManager.registerAccount(studentName, studentNumber)) {
@@ -252,8 +270,13 @@ public:
         cout << "         Admin Access    \n";
         cout << "-----------------------------\n";
         string adminName, adminPassword;
-        cout << "Enter admin name: ";
+        cout << "Enter admin name (or 'return' to go back): ";
         getline(cin, adminName);
+
+        if (adminName == "return") {
+            return;  // Return to the main menu
+        }
+
         cout << "Enter admin password: ";
         getline(cin, adminPassword);
 
@@ -265,7 +288,7 @@ public:
                 cout << "3. Remove Material\n";
                 cout << "4. Process Borrowing Requests\n";
                 cout << "5. Exit Admin Acess\n\n";
-                cout << "Enter choice: ";
+                cout << "Enter choice (number only): ";
 
             int choice;
             if (!(cin >> choice)) {
@@ -310,8 +333,14 @@ public:
 
         string materialName;
         int quantity;
-        cout << "Enter material name to add: ";
+
+        cout << "\nEnter material name to add (or 'return' to go back): ";
         getline(cin, materialName);
+
+         if (materialName == "return") {
+            return;  // Return to the admin menu
+        }
+
         cout << "Enter quantity: ";
 
         while (!(cin >> quantity)) {
@@ -326,12 +355,15 @@ public:
     }
 
     void removeMaterialAdmin() {
-
         viewMaterials();
 
         string materialName;
-        cout << "\nEnter material name to remove: ";
+        cout << "\nEnter material name to remove (or 'return' to go back): ";
         getline(cin, materialName);
+
+        if (materialName == "return") {
+            return;  // Return to the admin menu
+        }
 
         if (dbManager.getMaterials().count(materialName) == 0) {
             cout << "Material not found.\n";
@@ -403,7 +435,7 @@ public:
 
             string decision;
             while (true) {
-                cout << "Approve this request? (y/n): ";
+                cout << "Approve this request? (y = yes/n = no): ";
                 cin >> decision;
                 cin.ignore(10000, '\n');  // Clear the newline character from the input buffer
                 if (decision == "y" || decision == "n") {
