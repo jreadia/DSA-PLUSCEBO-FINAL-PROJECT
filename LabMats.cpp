@@ -381,7 +381,7 @@ public:
             string materialName;
             int quantity;
 
-            cout << "\nEnter material name (or 'done' to finish): ";
+            cout << "\nEnter material name to borrow (or 'done' to finish): ";
             getline(cin, materialName);
             if (materialName == "done") {
                 finishBorrowing(request);
